@@ -30,6 +30,7 @@
         "@types/node": "^18.18.3",
         "typescript": "^5.2.2"
     },
+    "type": "module",
     "scripts": {
         "prepublishOnly": "cd browser && npm install && npm run build",
         "test": "lab -t 100 -a @hapi/code -L -Y",
