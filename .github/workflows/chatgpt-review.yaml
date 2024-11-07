@@ -28,8 +28,6 @@ jobs:
           # Get the code changes
           changed_code=$(cat ${{steps.git-diff.outputs.raw-diff-path}})
           
-          echo "PR Changes $changed_code"
-          
           # Escape newlines and double quotes in the changed_code
           escaped_code=$(echo "Please review these code changes from this pull request: $changed_code" | jq -s -R -r @json)
           
