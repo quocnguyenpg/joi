@@ -1387,6 +1387,37 @@ describe('string', () => {
                 context: { value: 'something', label: 'item', key: 'item' }
             }]]);
         });
+
+        it('validates domain with underscores', () => {
+
+            const validSchema = Joi.string().domain({ allowUnderscore: true });
+            Helper.validate(validSchema, [
+                ['_acme-challenge.example.com', true],
+                ['_abc.example.com', true]
+            ]);
+
+            const invalidSchema = Joi.string().domain();
+            Helper.validate(invalidSchema, [
+                ['_acme-challenge.example.com', false, {
+                    context: {
+                        label: 'value',
+                        value: '_acme-challenge.example.com'
+                    },
+                    message: '"value" must contain a valid domain name',
+                    path: [],
+                    type: 'string.domain'
+                }],
+                ['_abc.example.com', false, {
+                    context: {
+                        label: 'value',
+                        value: '_abc.example.com'
+                    },
+                    message: '"value" must contain a valid domain name',
+                    path: [],
+                    type: 'string.domain'
+                }]
+            ]);
+        });
     });
 
     describe('email()', () => {
@@ -4999,7 +5030,7 @@ describe('string', () => {
 
         it('throws when options.cidr is not a string', () => {
 
-            expect(() => Joi.string().ip({ cidr: 42 })).to.throw('options.cidr must be a string');
+            expect(() => Joi.string().ip({ cidr: 42 })).to.throw('options.cidr must be one of required, optional, forbidden');
         });
 
         it('throws when options.cidr is not a valid value', () => {
@@ -9009,6 +9040,65 @@ describe('string', () => {
 
             Helper.validate(schema, [
                 ['https://example.com?abc[]=123&abc[]=456', true]
+            ]);
+        });
+
+        it('validates uri with accented characters with encoding', () => {
+
+            const schema = Joi.string().uri({ encodeUri: true });
+
+            Helper.validate(schema, { convert: true }, [
+                ['https://linkedin.com/in/aïssa/', true, 'https://linkedin.com/in/a%C3%AFssa/'],
+                ['https://linkedin.com/in/a%C3%AFssa/', true, 'https://linkedin.com/in/a%C3%AFssa/'],
+                ['/#.domain.com/', false, {
+                    message: '"value" must be a valid uri',
+                    path: [],
+                    type: 'string.uri',
+                    context: { label: 'value', value: '/#.domain.com/' }
+                }]
+            ]);
+        });
+
+        it('validates relative uri with accented characters with encoding', () => {
+
+            const schema = Joi.string().uri({ encodeUri: true, allowRelative: true });
+
+            Helper.validate(schema, { convert: true }, [
+                ['/in/aïssa/', true, '/in/a%C3%AFssa/'],
+                ['/in/a%C3%AFssa/', true, '/in/a%C3%AFssa/']
+            ]);
+        });
+
+        it('validates uri with encodeUri and scheme', () => {
+
+            const schema = Joi.string().uri({ encodeUri: true, scheme: 'https' });
+
+            Helper.validate(schema, { convert: true }, [
+                ['https://linkedin.com/in/aïssa/', true, 'https://linkedin.com/in/a%C3%AFssa/'],
+                ['http://linkedin.com/in/aïssa/', false, {
+                    message: '"value" must be a valid uri with a scheme matching the https pattern',
+                    path: [],
+                    type: 'string.uriCustomScheme',
+                    context: {
+                        scheme: 'https',
+                        value: 'http://linkedin.com/in/aïssa/',
+                        label: 'value'
+                    }
+                }]
+            ]);
+        });
+
+        it('validates uri with accented characters without encoding', () => {
+
+            const schema = Joi.string().uri({ encodeUri: true });
+
+            Helper.validate(schema, { convert: false }, [
+                ['https://linkedin.com/in/aïssa/', false, {
+                    message: '"value" must be a valid uri',
+                    path: [],
+                    type: 'string.uri',
+                    context: { value: 'https://linkedin.com/in/aïssa/', label: 'value' }
+                }]
             ]);
         });
 

@@ -2735,6 +2735,7 @@ Requires the string value to be a valid domain name.
 - `options` - optional settings:
     - `allowFullyQualified` - if `true`, domains ending with a `.` character are permitted. Defaults to `false`.
     - `allowUnicode` - if `true`, Unicode characters are permitted. Defaults to `true`.
+    - `allowUnderscore` - if `true`, underscores (`_`) are allowed in the domain name. Defaults to `false`.
     - `minDomainSegments` - number of segments required for the domain. Defaults to `2`.
     - `maxDomainSegments` - maximum number of allowed domain segments. Default to no limit.
     - `tlds` - options for TLD (top level domain) validation. By default, the TLD must be a valid
@@ -2762,6 +2763,7 @@ Requires the string value to be a valid email address.
 - `options` - optional settings:
     - `allowFullyQualified` - if `true`, domains ending with a `.` character are permitted. Defaults to `false`.
     - `allowUnicode` - if `true`, Unicode characters are permitted. Defaults to `true`.
+    - `allowUnderscore` - if `true`, underscores (`_`) are allowed in the domain name. Defaults to `false`.
     - `ignoreLength` - if `true`, ignore invalid email length errors. Defaults to `false`.
     - `minDomainSegments` - number of segments required for the domain. The default setting excludes
       single segment domains such as `example@io` which is a valid email but very uncommon. Defaults
@@ -3085,6 +3087,7 @@ Requires the string value to be a valid [RFC 3986](http://tools.ietf.org/html/rf
     - `relativeOnly` - Restrict only relative URIs.  Defaults to `false`.
     - `allowQuerySquareBrackets` - Allows unencoded square brackets inside the query string. This is **NOT** RFC 3986 compliant but query strings like `abc[]=123&abc[]=456` are very common these days. Defaults to `false`.
     - `domain` - Validate the domain component using the options specified in [`string.domain()`](#stringdomainoptions).
+    - `encodeUri` - When `convert` is true, if the validation fails, attempts to encode the URI using [`encodeURI`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI) before validating it again. This allows to provide, for example, unicode URIs, and have it encoded for you. Defaults to `false`.
 
 ```js
 // Accept git or git http/https

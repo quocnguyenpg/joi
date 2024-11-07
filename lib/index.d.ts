@@ -291,6 +291,12 @@ declare namespace Joi {
          */
         allowUnicode?: boolean;
         /**
+         * If `true`, underscores (`_`) are allowed in the domain name
+         *
+         * @default false
+         */
+        allowUnderscore?: boolean;
+        /**
          * if `true`, ignore invalid email length errors.
          *
          * @default false
@@ -341,7 +347,12 @@ declare namespace Joi {
          * @default true
          */
         allowUnicode?: boolean;
-
+        /**
+         * If `true`, underscores (`_`) are allowed in the domain name
+         *
+         * @default false
+         */
+        allowUnderscore?: boolean;
         /**
          * Options for TLD (top level domain) validation. By default, the TLD must be a valid name listed on the [IANA registry](http://data.iana.org/TLD/tlds-alpha-by-domain.txt)
          *
@@ -426,6 +437,12 @@ declare namespace Joi {
          * Validate the domain component using the options specified in `string.domain()`.
          */
         domain?: DomainOptions;
+        /**
+         * Encode URI before validation.
+         * 
+         * @default false
+         */
+        encodeUri?: boolean;
     }
 
     interface DataUriOptions {
@@ -465,7 +482,7 @@ declare namespace Joi {
         otherwise: SchemaLike;
     }
 
-    interface WhenOptions {
+    interface WhenOptions<ThenSchema = any, OtherwiseSchema = any> {
         /**
          * the required condition joi type.
          */
@@ -480,12 +497,12 @@ declare namespace Joi {
         /**
          * the alternative schema type if the condition is true. Required if otherwise or switch are missing.
          */
-        then?: SchemaLike;
+        then?: SchemaLike<ThenSchema>;
 
         /**
          * the alternative schema type if the condition is false. Required if then or switch are missing.
          */
-        otherwise?: SchemaLike;
+        otherwise?: SchemaLike<OtherwiseSchema>;
 
         /**
          * the list of cases. Required if then is missing.  Required if then or otherwise are missing.
@@ -498,15 +515,15 @@ declare namespace Joi {
         break?: boolean;
     }
 
-    interface WhenSchemaOptions {
+    interface WhenSchemaOptions<ThenSchema = any, OtherwiseSchema = any> {
         /**
          * the alternative schema type if the condition is true. Required if otherwise is missing.
          */
-        then?: SchemaLike;
+        then?: SchemaLike<ThenSchema>;
         /**
          * the alternative schema type if the condition is false. Required if then is missing.
          */
-        otherwise?: SchemaLike;
+        otherwise?: SchemaLike<OtherwiseSchema>;
     }
 
     interface Cache {
@@ -766,8 +783,11 @@ declare namespace Joi {
 
     type ExternalValidationFunction<V = any, R = V> = (value: V, helpers: ExternalHelpers<R>) => R | undefined;
 
-    type SchemaLikeWithoutArray = string | number | boolean | null | Schema | SchemaMap;
-    type SchemaLike = SchemaLikeWithoutArray | object;
+    type Primitives = string | number | boolean | bigint | symbol | null;
+
+    type SchemaLikeWithoutArray<TSchema = any> = TSchema extends any[] ? never :
+      (Primitives | Schema<TSchema> | SchemaMap<TSchema>);
+    type SchemaLike<TSchema = any> = SchemaLikeWithoutArray<TSchema> | object;
 
     type NullableType<T> = undefined | null | T
 
@@ -1642,7 +1662,13 @@ declare namespace Joi {
          *
          * @param type - a joi schema object to validate each array item against.
          */
-        items(...types: SchemaLikeWithoutArray[]): this;
+        items<A>(a: SchemaLikeWithoutArray<A>): ArraySchema<A[]>;
+        items<A, B>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>): ArraySchema<(A | B)[]>;
+        items<A, B, C>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>): ArraySchema<(A | B | C)[]>;
+        items<A, B, C, D>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>, d: SchemaLikeWithoutArray<D>): ArraySchema<(A | B | C| D)[]>;
+        items<A, B, C, D, E>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>, d: SchemaLikeWithoutArray<D>, e: SchemaLikeWithoutArray<E>): ArraySchema<(A | B | C| D | E)[]>;
+        items<A, B, C, D, E , F>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>, d: SchemaLikeWithoutArray<D>, e: SchemaLikeWithoutArray<E>, f: SchemaLikeWithoutArray<F>): ArraySchema<(A | B | C| D | E |F)[]>;
+        items<TItems>(...types: SchemaLikeWithoutArray<TItems>[]): this;
 
         /**
          * Specifies the exact number of items in the array.
@@ -1916,8 +1942,8 @@ declare namespace Joi {
         /**
          * Adds a conditional alternative schema type, either based on another key value, or a schema peeking into the current value.
          */
-        conditional(ref: string | Reference, options: WhenOptions | WhenOptions[]): this;
-        conditional(ref: Schema, options: WhenSchemaOptions): this;
+        conditional<ThenSchema, OtherwiseSchema>(ref: string | Reference, options: WhenOptions | WhenOptions[]): AlternativesSchema<ThenSchema | OtherwiseSchema>;
+        conditional<ThenSchema, OtherwiseSchema>(ref: Schema, options: WhenSchemaOptions<ThenSchema, OtherwiseSchema>): AlternativesSchema<ThenSchema | OtherwiseSchema>;
 
         /**
          * Requires the validated value to match a specific set of the provided alternative.try() schemas.
@@ -1928,6 +1954,12 @@ declare namespace Joi {
         /**
          * Adds an alternative schema type for attempting to match against the validated value.
          */
+        try<A>(a: SchemaLikeWithoutArray<A>): AlternativesSchema<A>;
+        try<A, B>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>): AlternativesSchema<A | B>;
+        try<A, B, C>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>): AlternativesSchema<A | B | C>;
+        try<A, B, C, D>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>, d: SchemaLikeWithoutArray<D>): AlternativesSchema<A | B | C| D>;
+        try<A, B, C, D, E>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>, d: SchemaLikeWithoutArray<D>, e: SchemaLikeWithoutArray<E>): AlternativesSchema<A | B | C| D | E>;
+        try<A, B, C, D, E , F>(a: SchemaLikeWithoutArray<A>, b: SchemaLikeWithoutArray<B>, c: SchemaLikeWithoutArray<C>, d: SchemaLikeWithoutArray<D>, e: SchemaLikeWithoutArray<E>, f: SchemaLikeWithoutArray<F>): AlternativesSchema<A | B | C| D | E |F>;
         try(...types: SchemaLikeWithoutArray[]): this;
     }
 
@@ -2139,12 +2171,28 @@ declare namespace Joi {
         /**
          * Generates a type that will match one of the provided alternative schemas
          */
-        alternatives<TSchema = any>(types: SchemaLike[]): AlternativesSchema<TSchema>;
-        alternatives<TSchema = any>(...types: SchemaLike[]): AlternativesSchema<TSchema>;
+        alternatives<A,B>(params: [SchemaLike<A>,SchemaLike<B>]): AlternativesSchema<A | B>;
+        alternatives<A,B,C>(params: [SchemaLike<A>, SchemaLike<B>, SchemaLike<C>]): AlternativesSchema<A | B | C>;
+        alternatives<A,B,C,D>(params: [SchemaLike<A>, SchemaLike<B>, SchemaLike<C>,  SchemaLike<D>]): AlternativesSchema<A | B | C | D>;
+        alternatives<A,B,C,D, E>(params: [SchemaLike<A>,SchemaLike<B>, SchemaLike<C>,  SchemaLike<D>,  SchemaLike<E>]): AlternativesSchema<A | B | C | D|E>;
+        alternatives<A,B>(a: SchemaLike<A>,b: SchemaLike<B>): AlternativesSchema<A | B>;
+        alternatives<A,B,C>(a: SchemaLike<A>,b: SchemaLike<B>, c:SchemaLike<C>): AlternativesSchema<A | B | C>;
+        alternatives<A,B,C,D>(a: SchemaLike<A>,b: SchemaLike<B>, c:SchemaLike<C>, d: SchemaLike<D>): AlternativesSchema<A | B | C | D>;
+        alternatives<A,B,C,D, E>(a: SchemaLike<A>,b: SchemaLike<B>, c:SchemaLike<C>, d: SchemaLike<D>, e: SchemaLike<E>): AlternativesSchema<A | B | C | D|E>;
+        alternatives<TSchema = any>(types: SchemaLike<TSchema>[]): AlternativesSchema<TSchema>;
+        alternatives<TSchema = any>(...types: SchemaLike<TSchema>[]): AlternativesSchema<TSchema>;
 
         /**
          * Alias for `alternatives`
          */
+        alt<A,B>(params: [SchemaLike<A>,SchemaLike<B>]): AlternativesSchema<A | B>;
+        alt<A,B,C>(params: [SchemaLike<A>, SchemaLike<B>, SchemaLike<C>]): AlternativesSchema<A | B | C>;
+        alt<A,B,C,D>(params: [SchemaLike<A>, SchemaLike<B>, SchemaLike<C>,  SchemaLike<D>]): AlternativesSchema<A | B | C | D>;
+        alt<A,B,C,D, E>(params: [SchemaLike<A>,SchemaLike<B>, SchemaLike<C>,  SchemaLike<D>,  SchemaLike<E>]): AlternativesSchema<A | B | C | D|E>;
+        alt<A,B>(a: SchemaLike<A>,b: SchemaLike<B>): AlternativesSchema<A | B>;
+        alt<A,B,C>(a: SchemaLike<A>,b: SchemaLike<B>, c:SchemaLike<C>): AlternativesSchema<A | B | C>;
+        alt<A,B,C,D>(a: SchemaLike<A>,b: SchemaLike<B>, c:SchemaLike<C>, d: SchemaLike<D>): AlternativesSchema<A | B | C | D>;
+        alt<A,B,C,D, E>(a: SchemaLike<A>,b: SchemaLike<B>, c:SchemaLike<C>, d: SchemaLike<D>, e: SchemaLike<E>): AlternativesSchema<A | B | C | D|E>;
         alt<TSchema = any>(types: SchemaLike[]): AlternativesSchema<TSchema>;
         alt<TSchema = any>(...types: SchemaLike[]): AlternativesSchema<TSchema>;
 
