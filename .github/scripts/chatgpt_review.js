@@ -39,7 +39,7 @@ async function getPullRequestDiff() {
 // Review the code diff using ChatGPT
 async function reviewCodeWithChatGPT(diff) {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-4-turbo",
     messages: [
       {
         role: "user",
